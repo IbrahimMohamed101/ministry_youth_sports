@@ -3,6 +3,8 @@
     const multer = require("multer");
     const path = require("path");
     const newsController = require("../controllers/news.controller");
+const authMiddleware = require("../middleware/auth");
+const { isNewsUser } = require("../middleware/roles");
 
     // Multer configuration
     const storage = multer.diskStorage({
@@ -32,7 +34,6 @@
     });
 
     // Basic CRUD routes
-    router.post("/", upload.single("image"), newsController.createNews);
     router.get("/", newsController.getAllNews);
 
     // Specific routes (should come before parameterized routes)
@@ -40,7 +41,11 @@
 
     // Parameterized routes (should come last)
     router.get("/:id", newsController.getNewsById);
-    router.put("/:id", upload.single("image"), newsController.updateNews);
-    router.delete("/:id", newsController.deleteNews);
+
+
+
+    router.post("/", authMiddleware, isNewsUser, upload.single("image"), newsController.createNews);
+    router.put("/:id", authMiddleware, isNewsUser, upload.single("image"), newsController.updateNews);
+    router.delete("/:id", authMiddleware, isNewsUser, newsController.deleteNews);
 
     module.exports = router;

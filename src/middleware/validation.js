@@ -1,4 +1,5 @@
     const { body, validationResult } = require('express-validator');
+    const multer = require('multer');
 
     // Validation rules for news creation
     exports.validateNewsCreation = [

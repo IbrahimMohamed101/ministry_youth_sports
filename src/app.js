@@ -43,7 +43,19 @@
 
     // API routes
     const newsRoutes = require("./routes/news.routes");
+    const authRoutes = require("./routes/auth.routes");
+    const activit = require('./routes/Activity.routes')
+    const center = require('./routes/center.Routes')
+    const activityTypes = require('./routes/activityTypes.Routes')
+
+
     app.use("/api/news", newsRoutes);
+    app.use("/api/auth", authRoutes);
+    app.use("/api/activit", activit)
+    app.use("/api/center", center)
+    app.use("/api/activityTypes", activityTypes)
+
+
 
     // Handle 404
     app.use(/.*/, (req, res) => {
