@@ -44,7 +44,7 @@
     // API routes
     const newsRoutes = require("./routes/news.routes");
     const authRoutes = require("./routes/auth.routes");
-    const activit = require('./routes/Activity.routes')
+    const activit = require('./routes/activity.routes')
     const center = require('./routes/center.Routes')
     const activityTypes = require('./routes/activityTypes.Routes')
 
