@@ -1,10 +1,14 @@
+const express = require('express');
+const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 const { isCentersUser } = require("../middleware/roles");
 
-const express = require("express");
-    const router = express.Router();
-    const {
+const {
     getCenters,
+    getCentersByLocationArea,
+    getCentersByRegion,
+    getCentersGroupedByLocationArea,
+    searchCenters,
     getCenter,
     createCenter,
     updateCenter,
@@ -12,28 +16,52 @@ const express = require("express");
     getCentersByActivity,
     getAllActivities,
     getCentersStats,
+    getAvailableLocationAreas,
+    getAvailableRegions,
     updateCenterActivities,
-    updateCenterMembership,
-    addActivityToCenter,
-    removeActivityFromCenter
-    } = require("../controllers/center.controller");
+    updateCenterMembership
+} = require('../controllers/center.controller');
 
-    // Public routes 
-    router.get("/", getCenters);
-    router.get("/stats", getCentersStats);
-    router.get("/activities", getAllActivities);
-    router.get("/activity/:type/:activityId", getCentersByActivity);
-    router.get("/:id", getCenter);
+// Public routes - order matters! More specific routes should come before less specific ones
 
-    // Protected routes (uncomment and adjust middleware as needed)
-    // router.use(protect); // Apply authentication to all routes below
+// Stats and activities routes
+router.get('/stats', getCentersStats);
+router.get('/activities', getAllActivities);
 
-    router.post("/", authMiddleware , isCentersUser, createCenter);
-    router.put("/:id",authMiddleware , isCentersUser, updateCenter);
-    router.patch("/:id/activities", authMiddleware , isCentersUser, updateCenterActivities);
-    router.patch("/:id/membership", authMiddleware , isCentersUser, updateCenterMembership);
-    router.post("/:id/activities/:type",authMiddleware , isCentersUser, addActivityToCenter);
-    router.delete("/:id/activities/:type/:activityId",authMiddleware , isCentersUser, removeActivityFromCenter);
-    router.delete("/:id", authMiddleware , isCentersUser, deleteCenter);
+// LocationArea routes (your main search functionality)
+router.get('/location-areas', getAvailableLocationAreas);
+router.get('/by-location-area/:locationArea', getCentersByLocationArea);
+router.get('/grouped-by-location-area', getCentersGroupedByLocationArea);
 
-    module.exports = router;
+// Region routes
+router.get('/regions', getAvailableRegions);
+router.get('/by-region/:region', getCentersByRegion);
+
+// Activity search routes
+router.get('/activity/:type/:activityId', getCentersByActivity);
+
+// Search route
+router.get('/search', searchCenters);
+
+// Single center route (must come after all other /something routes)
+router.get('/:id', getCenter);
+
+// Main centers route (must be last among GET routes)
+router.get('/', getCenters);
+
+// Protected routes (require authentication and center user role)
+router.use(authMiddleware);
+router.use(isCentersUser);
+
+// CRUD operations for authenticated users
+router.post('/', createCenter);
+router.put('/:id', updateCenter);
+router.delete('/:id', deleteCenter);
+
+// Activity management for authenticated users
+router.patch('/:id/activities', updateCenterActivities);
+
+// Membership management for authenticated users
+router.patch('/:id/membership', updateCenterMembership);
+
+module.exports = router;

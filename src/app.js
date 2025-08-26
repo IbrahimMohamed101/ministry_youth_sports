@@ -1,85 +1,154 @@
-    const express = require("express");
-    const dotenv = require("dotenv");
-    const path = require("path");
-    const cors = require("cors");
-    const helmet = require("helmet");
-    const morgan = require("morgan");
-    const connectDB = require("./config/db");
-    const { errorHandler } = require("./middleware/validation");
+require('colors');
+const express = require('express');
+const path = require('path');
+const cors = require('cors');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
+const compression = require('compression');
+const cookieParser = require('cookie-parser');
+const morgan = require('morgan');
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 
-    // Configure dotenv
-    dotenv.config({ path: path.join(__dirname, '..', '.env') });
+// Load env vars
+const result = dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-    // Connect to database
-    connectDB();
+if (result.error) {
+  console.error('❌ Error loading .env file'.red.bold);
+  process.exit(1);
+}
 
-    const app = express();
+// Import routes
+const newsRoutes = require('./routes/news.routes');
+const authRoutes = require('./routes/auth.routes');
+const activityRoutes = require('./routes/activity.routes');
+const centerRoutes = require('./routes/center.Routes');
+const activityTypeRoutes = require('./routes/activityTypes.Routes');
+const techClubRoutes = require('./routes/techClub.Routes');
+const playgroundRoutes = require('./routes/playground.routes');
+const swimmingPoolRoutes = require('./routes/swimmingPool.routes');
 
-    // Security middleware
-    app.use(helmet());
-    app.use(cors({
-    origin: process.env.FRONTEND_URL || "*",
-    credentials: true
-    }));
+// Import middleware and utilities
+const errorHandler = require('./middleware/error');
+const logger = require('./middleware/logger');
+const ErrorResponse = require('./utils/errorResponse');
 
-    // Logging middleware
-    app.use(morgan('combined'));
+// Import database connection
+const connectDB = require('./config/db');
 
-    // Body parsing middleware
-    app.use(express.json({ limit: '10mb' }));
-    app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Connect to database
+connectDB();
 
-    // Static files
-    app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Initialize express app
+const app = express();
 
-    // Health check endpoint
-    app.get("/health", (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Server is running",
-        timestamp: new Date().toISOString()
-    });
-    });
+// Set security HTTP headers
+app.use(helmet());
 
-    // API routes
-    const newsRoutes = require("./routes/news.routes");
-    const authRoutes = require("./routes/auth.routes");
-    const activit = require('./routes/activity.routes')
-    const center = require('./routes/center.Routes')
-    const activityTypes = require('./routes/activityTypes.Routes')
-    const techClub = require('./routes/techClub.Routes');
-    const playground = require("./routes/playground.routes");
-    const swimmingPool = require("./routes/swimmingPool.routes");
+// Enable CORS
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 
+// Development logging
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined', { stream: logger.stream }));
+}
 
-    app.use("/api/news", newsRoutes);
-    app.use("/api/auth", authRoutes);
-    app.use("/api/activit", activit);
-    app.use("/api/center", center);
-    app.use("/api/activityTypes", activityTypes);
-    app.use("/api/techClub", techClub);
-    app.use("/api/playground", playground);
-    app.use("/api/swimmingPool", swimmingPool);
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again after 15 minutes'
+});
 
+// Apply to all API routes
+app.use('/api', limiter);
 
+// Body parser
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Cookie parser
+app.use(cookieParser());
 
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
 
+// Data sanitization against XSS
+app.use(xss());
 
-    // Handle 404
-    app.use(/.*/, (req, res) => {
-    res.status(404).json({
-        success: false,
-        message: "Route not found"
-    });
-    });
+// Prevent parameter pollution
+app.use(hpp({
+  whitelist: [
+    'duration',
+    'ratingsQuantity',
+    'ratingsAverage',
+    'maxGroupSize',
+    'difficulty',
+    'price'
+  ]
+}));
 
-    // Error handling middleware
-    app.use(errorHandler);
+// Compress all responses
+app.use(compression());
 
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📱 Health check: http://localhost:${PORT}/health`);
-    console.log(`📰 News API: http://localhost:${PORT}/api/news`);
-    });
+// Static files
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+// Test middleware
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  next();
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
+});
+
+// API routes
+app.use('/api/v1/news', newsRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/activities', activityRoutes);
+app.use('/api/v1/centers', centerRoutes);
+app.use('/api/v1/activity-types', activityTypeRoutes);
+app.use('/api/v1/tech-clubs', techClubRoutes);
+app.use('/api/v1/playgrounds', playgroundRoutes);
+app.use('/api/v1/swimming-pools', swimmingPoolRoutes);
+
+// Handle 404 - Not Found
+// app.all('*', (req, res, next) => {
+//   next(new ErrorResponse(`Can't find ${req.originalUrl} on this server!`, 404));
+// });
+
+// Error handling middleware
+app.use(errorHandler);
+
+// Start server
+const PORT = process.env.PORT || 5000;
+const server = app.listen(PORT, () => {
+  console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold);
+  console.log(`📱 Health check: http://localhost:${PORT}/health`.cyan.underline);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.error(`❌ Error: ${err.message}`.red.bold);
+  // Close server & exit process
+  server.close(() => process.exit(1));
+});

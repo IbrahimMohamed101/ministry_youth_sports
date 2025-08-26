@@ -1,11 +1,13 @@
-    const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 
-    const centerSchema = new mongoose.Schema({
+const centerSchema = new mongoose.Schema({
     name: { type: String, required: true },
     phone: String,
     address: String,
     facebookLink: String,
     location: String,
+    LocationArea: String, // موقع المنطقة (المنطقة الشرقية، الغربية، إلخ)
+    region: String, // اسم المنطقة التفصيلية (مصر الجديدة و النزهة)
     image: String,
 
     // العلاقات
@@ -23,6 +25,8 @@
         firstTimePrice: Number,
         renewalPrice: Number
     }
-    });
+}, {
+    timestamps: true // إضافة تواريخ الإنشاء والتحديث
+});
 
-    module.exports = mongoose.model("Center", centerSchema);
+module.exports = mongoose.model("Center", centerSchema);
