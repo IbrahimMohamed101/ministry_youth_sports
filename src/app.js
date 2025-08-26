@@ -13,6 +13,7 @@ const morgan = require('morgan');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 
+
 // Load env vars
 const result = dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
