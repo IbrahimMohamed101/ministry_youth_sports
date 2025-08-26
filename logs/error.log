@@ -1,0 +1,44 @@
+2025-08-26 22:45:27 [31merror[39m: 	[31mError: Can't find /api/center on this server![39m
+[31m    at /mnt/d/ministry_youth_sports/src/app.js:136:8[39m
+[31m    at Layer.handle [as handle_request] (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/layer.js:95:5)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:144:13)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at Route.dispatch (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:114:3)[39m
+2025-08-26 22:45:45 [31merror[39m: 	[31mError: Can't find /api/center on this server![39m
+[31m    at /mnt/d/ministry_youth_sports/src/app.js:136:8[39m
+[31m    at Layer.handle [as handle_request] (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/layer.js:95:5)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:144:13)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at Route.dispatch (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:114:3)[39m
+2025-08-26 22:48:25 [31merror[39m: 	[31mError: Can't find /api/center on this server![39m
+[31m    at /mnt/d/ministry_youth_sports/src/app.js:136:8[39m
+[31m    at Layer.handle [as handle_request] (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/layer.js:95:5)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:144:13)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at next (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:140:7)[39m
+[31m    at Route.dispatch (/mnt/d/ministry_youth_sports/node_modules/express/lib/router/route.js:114:3)[39m
+2025-08-26 22:53:07 [31merror[39m: 	[31mCastError: Cast to ObjectId failed for value "by-region:المنطقة الجنوبية" (type string) at path "_id" for model "Center"[39m
+[31m    at SchemaObjectId.cast (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/schema/objectId.js:251:11)[39m
+[31m    at SchemaType.applySetters (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/schemaType.js:1258:12)[39m
+[31m    at SchemaType.castForQuery (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/schemaType.js:1680:17)[39m
+[31m    at cast (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/cast.js:390:32)[39m
+[31m    at Query.cast (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/query.js:5060:12)[39m
+[31m    at Query._castConditions (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/query.js:2374:10)[39m
+[31m    at model.Query._findOne (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/query.js:2697:8)[39m
+[31m    at model.Query.exec (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/query.js:4627:80)[39m
+[31m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[31m    at async /mnt/d/ministry_youth_sports/src/controllers/center.controller.js:297:20[39m
