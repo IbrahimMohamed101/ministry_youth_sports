@@ -16,10 +16,12 @@ const mongoose = require('mongoose');
 // Load env vars
 const result = dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-if (result.error) {
+// لو شغال محلي لازم ملف .env، لكن في production (Render) يكمل عادي
+if (result.error && process.env.NODE_ENV !== 'production') {
   console.error('❌ Error loading .env file'.red.bold);
   process.exit(1);
 }
+
 
 // Import routes
 const newsRoutes = require('./routes/news.routes');
