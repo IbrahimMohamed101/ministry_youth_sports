@@ -60,7 +60,7 @@
         totalPages: Math.ceil(totalActivities / limit),
         currentPage: page,
         totalActivities,
-        data: activities
+        activits: activities
     });
     });
 
@@ -88,7 +88,7 @@
 
     res.status(200).json({
         success: true,
-        data: activity
+        activits: activity
     });
     });
 
@@ -109,7 +109,7 @@
     res.status(201).json({
         success: true,
         message: "تم إنشاء النشاط بنجاح",
-        data: activity
+        activits: activity
     });
     });
 
@@ -146,7 +146,7 @@
     res.status(200).json({
         success: true,
         message: "تم تحديث النشاط بنجاح",
-        data: activity
+        activits: activity
     });
     });
 
@@ -190,7 +190,7 @@
     res.status(200).json({
         success: true,
         count: activities.length,
-        data: activities
+        activits: activities
     });
     });
 
@@ -212,7 +212,7 @@
     res.status(200).json({
         success: true,
         count: activities.length,
-        data: activities
+        activits: activities
     });
     });
 
@@ -246,7 +246,7 @@
     res.status(200).json({
         success: true,
         message: "تم تحديث حالة النشاط بنجاح",
-        data: activity
+        activits: activity
     });
     });
 
@@ -281,7 +281,7 @@
 
     res.status(200).json({
         success: true,
-        data: {
+        activits: {
         totalActivities,
         statusBreakdown: {
             scheduled: scheduledActivities,

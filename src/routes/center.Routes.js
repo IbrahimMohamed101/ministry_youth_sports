@@ -1,4 +1,7 @@
-    const express = require("express");
+const authMiddleware = require("../middleware/auth");
+const { isCentersUser } = require("../middleware/roles");
+
+const express = require("express");
     const router = express.Router();
     const {
     getCenters,
@@ -15,7 +18,7 @@
     removeActivityFromCenter
     } = require("../controllers/center.controller");
 
-    // Public routes
+    // Public routes 
     router.get("/", getCenters);
     router.get("/stats", getCentersStats);
     router.get("/activities", getAllActivities);
@@ -25,12 +28,12 @@
     // Protected routes (uncomment and adjust middleware as needed)
     // router.use(protect); // Apply authentication to all routes below
 
-    router.post("/", createCenter);
-    router.put("/:id", updateCenter);
-    router.patch("/:id/activities", updateCenterActivities);
-    router.patch("/:id/membership", updateCenterMembership);
-    router.post("/:id/activities/:type", addActivityToCenter);
-    router.delete("/:id/activities/:type/:activityId", removeActivityFromCenter);
-    router.delete("/:id", deleteCenter);
+    router.post("/", authMiddleware , isCentersUser, createCenter);
+    router.put("/:id",authMiddleware , isCentersUser, updateCenter);
+    router.patch("/:id/activities", authMiddleware , isCentersUser, updateCenterActivities);
+    router.patch("/:id/membership", authMiddleware , isCentersUser, updateCenterMembership);
+    router.post("/:id/activities/:type",authMiddleware , isCentersUser, addActivityToCenter);
+    router.delete("/:id/activities/:type/:activityId",authMiddleware , isCentersUser, removeActivityFromCenter);
+    router.delete("/:id", authMiddleware , isCentersUser, deleteCenter);
 
     module.exports = router;

@@ -68,7 +68,7 @@
         totalPages: Math.ceil(totalCenters / limit),
         currentPage: page,
         totalCenters,
-        data: centers
+        Centers: centers
     });
     });
 
@@ -90,7 +90,7 @@
 
     res.status(200).json({
         success: true,
-        data: center
+        Centers: center
     });
     });
 
@@ -109,7 +109,7 @@
     res.status(201).json({
         success: true,
         message: "تم إنشاء المركز بنجاح",
-        data: populatedCenter
+        Centers: populatedCenter
     });
     });
 
@@ -141,7 +141,7 @@
     res.status(200).json({
         success: true,
         message: "تم تحديث المركز بنجاح",
-        data: center
+        Centers: center
     });
     });
 
@@ -198,7 +198,7 @@
     res.status(200).json({
         success: true,
         count: centers.length,
-        data: centers
+        Centers: centers
     });
     });
 
@@ -212,7 +212,7 @@
 
     res.status(200).json({
         success: true,
-        data: {
+        Centers: {
         sports: sportsActivities,
         social: socialActivities,
         art: artActivities
@@ -288,7 +288,7 @@
 
     res.status(200).json({
         success: true,
-        data: {
+        Centers: {
         totalCenters,
         contactInfo: {
             withPhone: centersWithPhone,
@@ -380,7 +380,7 @@
     res.status(200).json({
         success: true,
         message: "تم تحديث أنشطة المركز بنجاح",
-        data: updatedCenter
+        Centers: updatedCenter
     });
     });
 
@@ -409,7 +409,7 @@
     res.status(200).json({
         success: true,
         message: "تم تحديث شروط العضوية بنجاح",
-        data: updatedCenter
+        Centers: updatedCenter
     });
     });
 
@@ -475,7 +475,7 @@
     res.status(200).json({
         success: true,
         message: "تم إضافة النشاط للمركز بنجاح",
-        data: updatedCenter
+        Centers: updatedCenter
     });
     });
 
@@ -519,7 +519,7 @@
     res.status(200).json({
         success: true,
         message: "تم إزالة النشاط من المركز بنجاح",
-        data: updatedCenter
+        Centers: updatedCenter
     });
     });
 

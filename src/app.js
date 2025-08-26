@@ -47,13 +47,22 @@
     const activit = require('./routes/activity.routes')
     const center = require('./routes/center.Routes')
     const activityTypes = require('./routes/activityTypes.Routes')
+    const techClub = require('./routes/techClub.Routes');
+    const playground = require("./routes/playground.routes");
+    const swimmingPool = require("./routes/swimmingPool.routes");
 
 
     app.use("/api/news", newsRoutes);
     app.use("/api/auth", authRoutes);
-    app.use("/api/activit", activit)
-    app.use("/api/center", center)
-    app.use("/api/activityTypes", activityTypes)
+    app.use("/api/activit", activit);
+    app.use("/api/center", center);
+    app.use("/api/activityTypes", activityTypes);
+    app.use("/api/techClub", techClub);
+    app.use("/api/playground", playground);
+    app.use("/api/swimmingPool", swimmingPool);
+
+
+
 
 
 

@@ -23,9 +23,9 @@
     // router.use(protect);
     // router.use(authorize("admin"));
 
-    router.post("/:type", createActivity);
-    router.post("/:type/bulk", bulkCreateActivities);
-    router.put("/:type/:id", updateActivity);
-    router.delete("/:type/:id", deleteActivity);
+    // router.post("/:type", createActivity);
+    // router.post("/:type/bulk", bulkCreateActivities);
+    // router.put("/:type/:id", updateActivity);
+    // router.delete("/:type/:id", deleteActivity);
 
     module.exports = router;

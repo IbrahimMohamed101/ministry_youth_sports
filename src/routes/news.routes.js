@@ -3,8 +3,8 @@
     const multer = require("multer");
     const path = require("path");
     const newsController = require("../controllers/news.controller");
-const authMiddleware = require("../middleware/auth");
-const { isNewsUser } = require("../middleware/roles");
+    const authMiddleware = require("../middleware/auth");
+    const { isNewsUser } = require("../middleware/roles");
 
     // Multer configuration
     const storage = multer.diskStorage({
