@@ -6,42 +6,24 @@ const { isCentersUser } = require("../middleware/roles");
 const {
     getCenters,
     getCentersByLocationArea,
-    getCentersByRegion,
-    getCentersGroupedByLocationArea,
-    searchCenters,
     getCenter,
     createCenter,
     updateCenter,
     deleteCenter,
-    getCentersByActivity,
-    getAllActivities,
-    getCentersStats,
-    getAvailableLocationAreas,
-    getAvailableRegions,
-    updateCenterActivities,
-    updateCenterMembership
+    getAllActivities
 } = require('../controllers/center.controller');
 
 // Public routes - order matters! More specific routes should come before less specific ones
 
-// Stats and activities routes
-router.get('/stats', getCentersStats);
+// Activities route
 router.get('/activities', getAllActivities);
 
 // LocationArea routes (your main search functionality)
-router.get('/location-areas', getAvailableLocationAreas);
+// Usage: GET /api/centers/by-location-area/eastern (for الشرقية)
+// Usage: GET /api/centers/by-location-area/western (for الغربية)
+// Usage: GET /api/centers/by-location-area/northern (for الشمالية)  
+// Usage: GET /api/centers/by-location-area/southern (for الجنوبية)
 router.get('/by-location-area/:locationArea', getCentersByLocationArea);
-router.get('/grouped-by-location-area', getCentersGroupedByLocationArea);
-
-// Region routes
-router.get('/regions', getAvailableRegions);
-router.get('/by-region/:region', getCentersByRegion);
-
-// Activity search routes
-router.get('/activity/:type/:activityId', getCentersByActivity);
-
-// Search route
-router.get('/search', searchCenters);
 
 // Single center route (must come after all other /something routes)
 router.get('/:id', getCenter);
@@ -57,11 +39,5 @@ router.use(isCentersUser);
 router.post('/', createCenter);
 router.put('/:id', updateCenter);
 router.delete('/:id', deleteCenter);
-
-// Activity management for authenticated users
-router.patch('/:id/activities', updateCenterActivities);
-
-// Membership management for authenticated users
-router.patch('/:id/membership', updateCenterMembership);
 
 module.exports = router;
