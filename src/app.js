@@ -15,11 +15,16 @@ const mongoose = require('mongoose');
 
 
 // Load env vars
-const result = dotenv.config({ path: path.join(__dirname, '..', '.env') });
+const envPath = path.resolve(__dirname, '..', '.env');
+const result = dotenv.config({ path: envPath });
 
-// لو شغال محلي لازم ملف .env، لكن في production (Render) يكمل عادي
+// Log environment loading status
+console.log(`Loading environment from: ${envPath}`);
+console.log('Environment variables loaded:', Object.keys(process.env).filter(key => key.includes('CLOUDINARY') || key === 'NODE_ENV'));
+
+// Only require .env file in development
 if (result.error && process.env.NODE_ENV !== 'production') {
-  console.error('❌ Error loading .env file'.red.bold);
+  console.error('❌ Error loading .env file:'.red.bold, result.error);
   process.exit(1);
 }
 
