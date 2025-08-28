@@ -73,3 +73,72 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
     };
+
+/**
+ * Verify token and return user role
+ * @route GET /api/auth/verify-token
+ * @access Public
+ */
+exports.verifyToken = (req, res) => {
+    const authHeader = req.headers.authorization;
+    
+    // Check if no token
+    if (!authHeader) {
+        return res.status(401).json({ 
+            success: false,
+            message: 'No token provided' 
+        });
+    }
+
+    // Extract token from Bearer
+    const token = authHeader.split(' ')[1];
+    
+    // Check if token exists
+    if (!token) {
+        return res.status(401).json({ 
+            success: false,
+            message: 'Invalid token format' 
+        });
+    }
+
+    // Check if token is blacklisted
+    if (tokenBlacklist.has(token)) {
+        return res.status(401).json({ 
+            success: false,
+            message: 'Token has been invalidated (logged out)' 
+        });
+    }
+
+    try {
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Return success with user role
+        return res.status(200).json({
+            success: true,
+            message: 'Token is valid',
+            role: decoded.role,
+            email: decoded.email
+        });
+    } catch (err) {
+        if (err.name === 'TokenExpiredError') {
+            return res.status(401).json({ 
+                success: false,
+                message: 'Token has expired' 
+            });
+        }
+        
+        return res.status(403).json({ 
+            success: false,
+            message: 'Invalid token' 
+        });
+    }
+};
+
+module.exports = {
+    login: exports.login,
+    logout: exports.logout,
+    getProfile: exports.getProfile,
+    verifyToken: exports.verifyToken,
+    tokenBlacklist: exports.tokenBlacklist
+};
