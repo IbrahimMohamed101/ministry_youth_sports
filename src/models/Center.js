@@ -8,7 +8,10 @@ const centerSchema = new mongoose.Schema({
     location: String,
     LocationArea: String, // موقع المنطقة (المنطقة الشرقية، الغربية، إلخ)
     region: String, // اسم المنطقة التفصيلية (مصر الجديدة و النزهة)
-    image: String,
+    image: {
+        public_id: String,
+        url: String
+    },
 
     // العلاقات
     sportsActivities: [{ type: mongoose.Schema.Types.ObjectId, ref: "SportActivity" }],

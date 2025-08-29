@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 const { isCentersUser } = require("../middleware/roles");
+const { uploadSingleImage, cleanupUploads } = require('../middleware/upload');
 
 const {
     getCenters,
@@ -10,7 +11,9 @@ const {
     createCenter,
     updateCenter,
     deleteCenter,
-    getAllActivities
+    getAllActivities,
+    addActivitiesToCenter,
+    removeActivityFromCenter
 } = require('../controllers/center.controller');
 
 // Public routes - order matters! More specific routes should come before less specific ones
@@ -35,9 +38,21 @@ router.get('/', getCenters);
 router.use(authMiddleware);
 router.use(isCentersUser);
 
+// Activities management
+router.post('/:centerId/activities', addActivitiesToCenter);
+router.delete('/:centerId/activities', removeActivityFromCenter);
+
 // CRUD operations for authenticated users
-router.post('/', createCenter);
-router.put('/:id', updateCenter);
+router.post('/', 
+    uploadSingleImage('image'), // Handle single file upload for 'image' field
+    cleanupUploads, // Clean up uploaded files after response
+    createCenter
+);
+router.put('/:id', 
+    uploadSingleImage('image'), // Handle single file upload for 'image' field
+    cleanupUploads, // Clean up uploaded files after response
+    updateCenter
+);
 router.delete('/:id', deleteCenter);
 
 module.exports = router;

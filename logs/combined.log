@@ -72,3 +72,23 @@
 [31m    at model.Query.exec (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/query.js:4627:80)[39m
 [31m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
 [31m    at async /mnt/d/ministry_youth_sports/src/controllers/center.controller.js:153:20[39m
+2025-08-29 16:17:14 [31merror[39m: 	[31mMongoServerError: E11000 duplicate key error collection: ministry_youth_sports.activities index: slug_1 dup key: { slug: "نشاط-رياضي" }[39m
+[31m    at InsertOneOperation.execute (/mnt/d/ministry_youth_sports/node_modules/mongodb/lib/operations/insert.js:51:19)[39m
+[31m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[31m    at async tryOperation (/mnt/d/ministry_youth_sports/node_modules/mongodb/lib/operations/execute_operation.js:207:20)[39m
+[31m    at async executeOperation (/mnt/d/ministry_youth_sports/node_modules/mongodb/lib/operations/execute_operation.js:75:16)[39m
+[31m    at async Collection.insertOne (/mnt/d/ministry_youth_sports/node_modules/mongodb/lib/collection.js:157:16)[39m
+2025-08-29 20:24:58 [31merror[39m: 	[31mCastError: Cast to string failed for value "{[39m
+[31m  public_id: 'ministry_centers/w4f56zaywkpma8oeigg2',[39m
+[31m  url: 'https://res.cloudinary.com/dr0xh0y16/image/upload/v1756488298/ministry_centers/w4f56zaywkpma8oeigg2.jpg'[39m
+[31m}" (type Object) at path "image"[39m
+[31m    at SchemaString.cast (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/schema/string.js:607:11)[39m
+[31m    at SchemaType.applySetters (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/schemaType.js:1258:12)[39m
+[31m    at SchemaString.castForQuery (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/schema/string.js:699:17)[39m
+[31m    at castUpdateVal (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/helpers/query/castUpdate.js:628:19)[39m
+[31m    at walkUpdatePath (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/helpers/query/castUpdate.js:333:22)[39m
+[31m    at castUpdate (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/helpers/query/castUpdate.js:144:7)[39m
+[31m    at model.Query._castUpdate (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/query.js:4874:10)[39m
+[31m    at model.Query._findOneAndUpdate (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/query.js:3497:23)[39m
+[31m    at model.Query.exec (/mnt/d/ministry_youth_sports/node_modules/mongoose/lib/query.js:4627:80)[39m
+[31m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
