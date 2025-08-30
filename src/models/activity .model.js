@@ -132,24 +132,29 @@
     });
 
     // Slug Generator
-    activitySchema.pre("save", function (next) {
-    if (this.isModified("projectName")) {
-        let slug = this.projectName
-        .trim()
-        .replace(/\s+/g, "-")
-        .replace(/[^\u0600-\u06FF\u0750-\u077F\w\s-]/g, "")
-        .toLowerCase();
+activitySchema.pre('save', function(next) {
+  if (this.isModified('projectName')) {
+    let slug = this.projectName
+      .trim()
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/[^\u0600-\u06FF\u0750-\u077F\w\s-]/g, '') // Keep Arabic chars and basic chars
+      .toLowerCase();
 
-        if (!slug || slug === "-" || slug.replace(/-/g, "") === "") {
-        const timestamp = Date.now();
-        const random = Math.floor(Math.random() * 1000);
-        slug = `activity-${timestamp}-${random}`;
-        }
+    // Append date (yyyyMMddHHmmss) to make it unique
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}${(now.getMonth()+1)
+      .toString().padStart(2,'0')}${now.getDate()
+      .toString().padStart(2,'0')}${now.getHours()
+      .toString().padStart(2,'0')}${now.getMinutes()
+      .toString().padStart(2,'0')}${now.getSeconds()
+      .toString().padStart(2,'0')}`;
 
-        this.slug = slug;
-    }
-    next();
-    });
+    slug = `${slug}-${timestamp}`;
+
+    this.slug = slug;
+  }
+  next();
+});
 
     // Virtuals
     activitySchema.virtual("formattedDate").get(function () {
