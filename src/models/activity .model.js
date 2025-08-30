@@ -4,57 +4,57 @@ const activitySchema = new mongoose.Schema(
   {
     projectName: {
       type: String,
-      required: true,
+    //   required: true,
       trim: true,
     },
     coordinatorName: {
       type: String,
-      required: true,
+    //   required: true,
       trim: true,
     },
     phoneNumber: {
       type: String,
-      required: true,
+    //   required: true,
       trim: true,
     },
     location: {
       type: String,
-      required: true,
+    //   required: true,
       trim: true,
     },
     date: {
       type: Date,
-      required: true,
+    //   required: true,
     },
     time: {
       type: String,
-      required: true,
+    //   required: true,
     },
     daysCount: {
       type: Number,
-      required: true,
+    //   required: true,
     },
     participantsCount: {
       type: Number,
-      required: true,
+    //   required: true,
     },
     targetAge: {
       min: {
         type: Number,
-        required: true,
+        // required: true,
       },
       max: {
         type: Number,
-        required: true,
+        // required: true,
       },
     },
     gender: {
       type: String,
-      required: true,
+    //   required: true,
     },
     accessType: {
       type: String,
-      required: true,
+    //   required: true,
     },
     notes: {
       type: String,
