@@ -20,7 +20,6 @@ const activitySchema = new mongoose.Schema(
       trim: true,
       validate: {
         validator: function (v) {
-          // تصحيح الـ Regex (من غير الفاصلة)
           const phoneRegex = /^(\+2)?01[0-25][0-9]{8}$/;
           return phoneRegex.test(v);
         },
@@ -38,7 +37,6 @@ const activitySchema = new mongoose.Schema(
       required: [true, "التاريخ مطلوب"],
       validate: {
         validator: function (v) {
-          // التأكد من أن التاريخ ليس في الماضي
           return v >= new Date(new Date().setHours(0, 0, 0, 0));
         },
         message: "التاريخ يجب أن يكون في المستقبل أو اليوم",
@@ -102,11 +100,6 @@ const activitySchema = new mongoose.Schema(
       type: String,
       maxLength: [500, "الملاحظات لا يمكن أن تتجاوز 500 حرف"],
     },
-    slug: {
-      type: String,
-      unique: true,
-      lowercase: true,
-    },
     status: {
       type: String,
       enum: ["مجدول", "جاري", "ملغي"],
@@ -131,26 +124,6 @@ activitySchema.pre("validate", function (next) {
   next();
 });
 
-// Slug Generator
-activitySchema.pre("save", function (next) {
-  if (this.isModified("projectName")) {
-    let slug = this.projectName
-      .trim()
-      .replace(/\s+/g, "-")
-      .replace(/[^\u0600-\u06FF\u0750-\u077F\w\s-]/g, "")
-      .toLowerCase();
-
-    if (!slug || slug === "-" || slug.replace(/-/g, "") === "") {
-      const timestamp = Date.now();
-      const random = Math.floor(Math.random() * 1000);
-      slug = `activity-${timestamp}-${random}`;
-    }
-
-    this.slug = slug;
-  }
-  next();
-});
-
 // Virtuals
 activitySchema.virtual("formattedDate").get(function () {
   return this.date.toLocaleDateString("ar-EG", {
@@ -166,7 +139,7 @@ activitySchema.virtual("ageRange").get(function () {
   }
   return `من ${this.targetAge.min} إلى ${this.targetAge.max} سنة`;
 });
-// هنا جديد 
+
 activitySchema.virtual("duration").get(function () {
   if (this.daysCount === 1) return "يوم واحد";
   if (this.daysCount === 2) return "يومان";
@@ -175,10 +148,14 @@ activitySchema.virtual("duration").get(function () {
 });
 
 // Indexes
-activitySchema.index({ projectName: "text", location: "text", coordinatorName: "text" });
+activitySchema.index({
+  projectName: "text",
+  location: "text",
+  coordinatorName: "text",
+});
 activitySchema.index({ date: 1 });
 activitySchema.index({ status: 1 });
-activitySchema.index({ slug: 1 });
 activitySchema.index({ createdAt: -1 });
+
 
 module.exports = mongoose.model("Activity", activitySchema);
