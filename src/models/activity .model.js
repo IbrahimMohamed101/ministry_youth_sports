@@ -166,7 +166,7 @@ activitySchema.virtual("ageRange").get(function () {
   }
   return `من ${this.targetAge.min} إلى ${this.targetAge.max} سنة`;
 });
-
+// هنا جديد 
 activitySchema.virtual("duration").get(function () {
   if (this.daysCount === 1) return "يوم واحد";
   if (this.daysCount === 2) return "يومان";
