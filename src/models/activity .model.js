@@ -4,158 +4,67 @@ const activitySchema = new mongoose.Schema(
   {
     projectName: {
       type: String,
-      required: [true, "اسم المشروع مطلوب"],
+      required: true,
       trim: true,
-      maxLength: [200, "اسم المشروع لا يمكن أن يتجاوز 200 حرف"],
     },
     coordinatorName: {
       type: String,
-      required: [true, "اسم المنسق مطلوب"],
+      required: true,
       trim: true,
-      maxLength: [100, "اسم المنسق لا يمكن أن يتجاوز 100 حرف"],
     },
     phoneNumber: {
       type: String,
-      required: [true, "رقم التلفون مطلوب"],
+      required: true,
       trim: true,
-      validate: {
-        validator: function (v) {
-          const phoneRegex = /^(\+2)?01[0-25][0-9]{8}$/;
-          return phoneRegex.test(v);
-        },
-        message: "يرجى إدخال رقم تلفون صحيح (مثال: 01012345678)",
-      },
     },
     location: {
       type: String,
-      required: [true, "المكان مطلوب"],
+      required: true,
       trim: true,
-      maxLength: [150, "المكان لا يمكن أن يتجاوز 150 حرف"],
     },
     date: {
       type: Date,
-      required: [true, "التاريخ مطلوب"],
-      validate: {
-        validator: function (v) {
-          return v >= new Date(new Date().setHours(0, 0, 0, 0));
-        },
-        message: "التاريخ يجب أن يكون في المستقبل أو اليوم",
-      },
+      required: true,
     },
     time: {
       type: String,
-      required: [true, "الساعة مطلوبة"],
-      trim: true,
-      validate: {
-        validator: function (v) {
-          const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-          return timeRegex.test(v);
-        },
-        message: "يرجى إدخال الوقت بصيغة صحيحة (مثال: 14:30)",
-      },
+      required: true,
     },
     daysCount: {
       type: Number,
-      required: [true, "عدد الأيام مطلوب"],
-      min: [1, "عدد الأيام يجب أن يكون على الأقل يوم واحد"],
-      max: [365, "عدد الأيام لا يمكن أن يتجاوز 365 يوم"],
+      required: true,
     },
     participantsCount: {
       type: Number,
-      required: [true, "عدد المشاركين مطلوب"],
-      min: [1, "عدد المشاركين يجب أن يكون على الأقل شخص واحد"],
-      max: [10000, "عدد المشاركين لا يمكن أن يتجاوز 10000"],
+      required: true,
     },
     targetAge: {
       min: {
         type: Number,
-        required: [true, "الحد الأدنى للعمر مطلوب"],
-        min: [0, "العمر لا يمكن أن يكون أقل من صفر"],
-        max: [100, "العمر لا يمكن أن يتجاوز 100 سنة"],
+        required: true,
       },
       max: {
         type: Number,
-        required: [true, "الحد الأقصى للعمر مطلوب"],
-        min: [0, "العمر لا يمكن أن يكون أقل من صفر"],
-        max: [100, "العمر لا يمكن أن يتجاوز 100 سنة"],
+        required: true,
       },
     },
     gender: {
       type: String,
-      required: [true, "النوع مطلوب"],
-      enum: {
-        values: ["بنين", "بنات", "مختلط"],
-        message: "النوع يجب أن يكون: بنين، بنات، أو مختلط",
-      },
+      required: true,
     },
     accessType: {
       type: String,
-      required: [true, "نوع الوصول مطلوب"],
-      enum: {
-        values: ["الأعضاء فقط", "للجميع"],
-        message: "نوع الوصول يجب أن يكون: الأعضاء فقط أو للجميع",
-      },
+      required: true,
     },
     notes: {
       type: String,
-      maxLength: [500, "الملاحظات لا يمكن أن تتجاوز 500 حرف"],
     },
     status: {
       type: String,
-      enum: ["مجدول", "جاري", "ملغي"],
       default: "مجدول",
     },
   },
-  {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
-  }
+  { timestamps: true }
 );
-
-// Validator: تأكد أن max > min
-activitySchema.pre("validate", function (next) {
-  if (this.targetAge && this.targetAge.max < this.targetAge.min) {
-    this.invalidate(
-      "targetAge.max",
-      "الحد الأقصى للعمر يجب أن يكون أكبر من الحد الأدنى"
-    );
-  }
-  next();
-});
-
-// Virtuals
-activitySchema.virtual("formattedDate").get(function () {
-  return this.date.toLocaleDateString("ar-EG", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-});
-
-activitySchema.virtual("ageRange").get(function () {
-  if (this.targetAge.min === this.targetAge.max) {
-    return `${this.targetAge.min} سنة`;
-  }
-  return `من ${this.targetAge.min} إلى ${this.targetAge.max} سنة`;
-});
-
-activitySchema.virtual("duration").get(function () {
-  if (this.daysCount === 1) return "يوم واحد";
-  if (this.daysCount === 2) return "يومان";
-  if (this.daysCount <= 10) return `${this.daysCount} أيام`;
-  return `${this.daysCount} يوماً`;
-});
-
-// Indexes
-activitySchema.index({
-  projectName: "text",
-  location: "text",
-  coordinatorName: "text",
-});
-activitySchema.index({ date: 1 });
-activitySchema.index({ status: 1 });
-activitySchema.index({ createdAt: -1 });
-
 
 module.exports = mongoose.model("Activity", activitySchema);
