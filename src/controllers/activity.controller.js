@@ -96,22 +96,43 @@
     // @route   POST /api/activities
     // @access  Private
     const createActivity = asyncHandler(async (req, res) => {
-    // Validate target age
+    // Validate target age (double check before reaching schema)
     if (req.body.targetAge && req.body.targetAge.max < req.body.targetAge.min) {
         return res.status(400).json({
         success: false,
-        message: "الحد الأقصى للعمر يجب أن يكون أكبر من الحد الأدنى"
+        message: "الحد الأقصى للعمر يجب أن يكون أكبر من الحد الأدنى",
         });
     }
 
-    const activity = await Activity.create(req.body);
+    try {
+        const activity = await Activity.create(req.body);
 
-    res.status(201).json({
+        res.status(201).json({
         success: true,
         message: "تم إنشاء النشاط بنجاح",
-        activits: activity
+        activity, // عدلت الـ typo هنا
+        });
+    } catch (error) {
+        // لو الخطأ من Mongoose Validation
+        if (error.name === "ValidationError") {
+        const messages = Object.values(error.errors).map((err) => err.message);
+
+        return res.status(400).json({
+            success: false,
+            message: "فشل التحقق من صحة البيانات",
+            errors: messages, // هنا هيترجع Array فيها كل الرسائل
+        });
+        }
+
+        // أي خطأ غير متوقع
+        res.status(500).json({
+        success: false,
+        message: "حدث خطأ غير متوقع، حاول مرة أخرى لاحقًا",
+        error: error.message,
+        });
+    }
     });
-    });
+
 
     // @desc    Update activity
     // @route   PUT /api/activities/:id
