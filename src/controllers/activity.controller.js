@@ -95,49 +95,56 @@
     // @desc    Create new activity
     // @route   POST /api/activities
     // @access  Private
-    const createActivity = asyncHandler(async (req, res) => {
-    // Validate target age (double check before reaching schema)
-    if (req.body.targetAge && req.body.targetAge.max < req.body.targetAge.min) {
-        return res.status(400).json({
+const createActivity = asyncHandler(async (req, res) => {
+  // Validate target age (double check before reaching schema)
+  if (req.body.targetAge && req.body.targetAge.max < req.body.targetAge.min) {
+    return res.status(400).json({
+      success: false,
+      message: "الحد الأقصى للعمر يجب أن يكون أكبر من الحد الأدنى",
+    });
+  }
+
+  try {
+    const activity = await Activity.create(req.body);
+
+    res.status(201).json({
+      success: true,
+      message: "تم إنشاء النشاط بنجاح",
+      activity, // مُصحح بالفعل
+    });
+  } catch (error) {
+    // لو الخطأ من Mongoose Validation
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((err) => err.message);
+
+      return res.status(400).json({
         success: false,
-        message: "الحد الأقصى للعمر يجب أن يكون أكبر من الحد الأدنى",
-        });
+        message: "فشل التحقق من صحة البيانات",
+        errors: messages,
+      });
     }
 
-    try {
-        const activity = await Activity.create(req.body);
+    // لو الخطأ duplicate key (slug)
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "اسم المشروع موجود بالفعل، يرجى استخدام اسم مختلف",
+      });
+    }
 
-        res.status(201).json({
-        success: true,
-        message: "تم إنشاء النشاط بنجاح",
-        activity, // عدلت الـ typo هنا
-        });
-    } catch (error) {
-        // لو الخطأ من Mongoose Validation
-        if (error.name === "ValidationError") {
-        const messages = Object.values(error.errors).map((err) => err.message);
-
-        return res.status(400).json({
-            success: false,
-            message: "فشل التحقق من صحة البيانات",
-            errors: messages, // هنا هيترجع Array فيها كل الرسائل
-        });
-        }
-
-        // أي خطأ غير متوقع
-        res.status(500).json({
+    // أي خطأ غير متوقع
+    res.status(500).json({
         success: false,
         message: "حدث خطأ غير متوقع، حاول مرة أخرى لاحقًا",
-        error: error.message,
+        error: process.env.NODE_ENV === "development" ? error.message : undefined,
         });
     }
-    });
+});
 
-
-    // @desc    Update activity
-    // @route   PUT /api/activities/:id
-    // @access  Private
-    const updateActivity = asyncHandler(async (req, res) => {
+// @desc    Update activity
+// @route   PUT /api/activities/:id
+// @access  Private
+const updateActivity = asyncHandler(async (req, res) => {
     let activity = await Activity.findById(req.params.id);
 
     if (!activity) {
@@ -155,22 +162,49 @@
         });
     }
 
-    activity = await Activity.findByIdAndUpdate(
+    try {
+        activity = await Activity.findByIdAndUpdate(
         req.params.id,
         req.body,
         {
-        new: true,
-        runValidators: true
+            new: true,
+            runValidators: true
         }
-    );
+        );
 
-    res.status(200).json({
+        res.status(200).json({
         success: true,
         message: "تم تحديث النشاط بنجاح",
-        activits: activity
-    });
-    });
+        activity // مُصحح - كان activits
+        });
+    } catch (error) {
+        // لو الخطأ من Mongoose Validation
+        if (error.name === "ValidationError") {
+        const messages = Object.values(error.errors).map((err) => err.message);
 
+        return res.status(400).json({
+            success: false,
+            message: "فشل التحقق من صحة البيانات",
+            errors: messages,
+        });
+        }
+
+        // لو الخطأ duplicate key (slug)
+        if (error.code === 11000) {
+        return res.status(400).json({
+            success: false,
+            message: "اسم المشروع موجود بالفعل، يرجى استخدام اسم مختلف",
+        });
+        }
+
+        // أي خطأ غير متوقع
+        res.status(500).json({
+        success: false,
+        message: "حدث خطأ غير متوقع، حاول مرة أخرى لاحقًا",
+        error: process.env.NODE_ENV === "development" ? error.message : undefined,
+        });
+    }
+});
     // @desc    Delete activity
     // @route   DELETE /api/activities/:id
     // @access  Private
