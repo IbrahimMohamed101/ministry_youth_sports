@@ -95,30 +95,63 @@
         // @desc    Create new activity
         // @route   POST /api/activities
         // @access  Private
-    const createActivity = asyncHandler(async (req, res) => {
-    // Validate target age (double check before reaching schema)
-    if (req.body.targetAge && req.body.targetAge.max < req.body.targetAge.min) {
-        return res.status(400).json({
-        success: false,
-        message: "الحد الأقصى للعمر يجب أن يكون أكبر من الحد الأدنى",
-        });
-    }
-
+    const createActivity = async (req, res) => {
     try {
-        const activity = await Activity.create(req.body);
+        let data = { ...req.body };
 
-        res.status(201).json({
+        // ✅ Casting للأرقام
+        if (data.targetAge) {
+        data.targetAge.min = Number(data.targetAge.min);
+        data.targetAge.max = Number(data.targetAge.max);
+        }
+        if (data.daysCount) data.daysCount = Number(data.daysCount);
+        if (data.participantsCount) data.participantsCount = Number(data.participantsCount);
+
+        // ✅ Check للتواريخ (مثال لو عندك تاريخ بداية ونهاية)
+        if (data.startDate) {
+        const start = new Date(data.startDate);
+        if (isNaN(start.getTime())) {
+            return res.status(400).json({
+            success: false,
+            message: "تاريخ البداية غير صالح",
+            });
+        }
+        data.startDate = start;
+        }
+        if (data.endDate) {
+        const end = new Date(data.endDate);
+        if (isNaN(end.getTime())) {
+            return res.status(400).json({
+            success: false,
+            message: "تاريخ النهاية غير صالح",
+            });
+        }
+        data.endDate = end;
+        }
+
+        // ✅ تأكد من targetAge
+        if (data.targetAge && data.targetAge.min > data.targetAge.max) {
+        return res.status(400).json({
+            success: false,
+            message: "الحد الأدنى للعمر لا يمكن أن يكون أكبر من الحد الأقصى",
+        });
+        }
+
+        // ✅ إنشاء النشاط
+        const activity = await Activity.create(data);
+
+        return res.status(201).json({
         success: true,
         message: "تم إنشاء النشاط بنجاح",
-        activity,
+        data: activity,
         });
+
     } catch (error) {
-        console.log("خطأ في إنشاء النشاط:", error);
-
-        // لو الخطأ من Mongoose Validation
         if (error.name === "ValidationError") {
-        const messages = Object.values(error.errors).map((err) => err.message);
-
+        const messages = Object.values(error.errors).map((err) => ({
+            field: err.path,
+            message: err.message,
+        }));
         return res.status(400).json({
             success: false,
             message: "فشل التحقق من صحة البيانات",
@@ -126,32 +159,22 @@
         });
         }
 
-        // لو الخطأ duplicate key (نادر جداً دلوقتي بسبب الـ slug generator الجديد)
         if (error.code === 11000) {
-        // جرب تاني مرة واحدة
-        try {
-            const activity = await Activity.create(req.body);
-            return res.status(201).json({
-            success: true,
-            message: "تم إنشاء النشاط بنجاح",
-            activity,
-            });
-        } catch (retryError) {
-            return res.status(400).json({
+        return res.status(400).json({
             success: false,
-            message: "حدث تضارب في البيانات، يرجى المحاولة مرة أخرى",
-            });
-        }
+            message: "قيمة مكررة في حقل فريد",
+            key: error.keyValue,
+        });
         }
 
-        // أي خطأ غير متوقع
-        res.status(500).json({
+        console.error(error);
+        return res.status(500).json({
         success: false,
-        message: "حدث خطأ غير متوقع، حاول مرة أخرى لاحقًا",
-        error: process.env.NODE_ENV === "development" ? error.message : undefined,
+        message: "خطأ في الخادم",
         });
     }
-    });
+    };
+
     // @desc    Update activity
     // @route   PUT /api/activities/:id
     // @access  Private
