@@ -251,6 +251,33 @@ const createCenter = asyncHandler(async (req, res) => {
 // @route   PUT /api/centers/:id
 // @access  Private
 const updateCenter = asyncHandler(async (req, res) => {
+    console.log('Raw req.body:', req.body);
+    console.log('Uploaded file:', req.file);
+
+    // تحويل JSON strings إلى arrays (للـ FormData)
+    ['sportsActivities', 'socialActivities', 'artActivities'].forEach(activityType => {
+        if (req.body[activityType] && typeof req.body[activityType] === 'string') {
+            try {
+                req.body[activityType] = JSON.parse(req.body[activityType]);
+                console.log(`Parsed ${activityType}:`, req.body[activityType]);
+            } catch (e) {
+                console.error(`Error parsing ${activityType}:`, e);
+                req.body[activityType] = [];
+            }
+        }
+    });
+
+    // تحويل activities object
+    if (req.body.activities && typeof req.body.activities === 'string') {
+        try {
+            req.body.activities = JSON.parse(req.body.activities);
+            console.log('Parsed activities object:', req.body.activities);
+        } catch (e) {
+            console.error('Error parsing activities:', e);
+            delete req.body.activities;
+        }
+    }
+
     let center = await Center.findById(req.params.id);
 
     if (!center) {
@@ -298,6 +325,17 @@ const updateCenter = asyncHandler(async (req, res) => {
     delete updateData.socialActivities;
     delete updateData.artActivities;
     delete updateData.activities;
+
+    // معالجة membership data - نقل firstTimePrice و renewalPrice إلى membership object
+    if (req.body.firstTimePrice || req.body.renewalPrice) {
+        updateData.membership = {
+            ...center.membership?.toObject?.() || {},
+            ...(req.body.firstTimePrice && { firstTimePrice: Number(req.body.firstTimePrice) }),
+            ...(req.body.renewalPrice && { renewalPrice: Number(req.body.renewalPrice) })
+        };
+        delete updateData.firstTimePrice;
+        delete updateData.renewalPrice;
+    }
 
     // Handle activities update - REPLACE existing activities completely
     if (req.body.activities) {
@@ -352,35 +390,52 @@ const updateCenter = asyncHandler(async (req, res) => {
         }
     }
 
-    console.log('Update Data:', updateData); // للـ debugging
+    console.log('Final Update Data:', updateData);
 
-    // Update center with new data
-    center = await Center.findByIdAndUpdate(
-        req.params.id,
-        updateData,
-        {
-            new: true,
-            runValidators: true
+    try {
+        // Update center with new data
+        center = await Center.findByIdAndUpdate(
+            req.params.id,
+            updateData,
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+
+        if (!center) {
+            return res.status(404).json({
+                success: false,
+                message: "فشل في تحديث المركز"
+            });
         }
-    );
 
-    // Populate the updated center's activities
-    center = await Center.findById(center._id)
-        .populate('sportsActivities', 'name')
-        .populate('socialActivities', 'name')
-        .populate('artActivities', 'name');
+        // Populate the updated center's activities
+        center = await Center.findById(center._id)
+            .populate('sportsActivities', 'name')
+            .populate('socialActivities', 'name')
+            .populate('artActivities', 'name');
 
-    console.log('Updated Center Activities:', {
-        sports: center.sportsActivities,
-        social: center.socialActivities,
-        art: center.artActivities
-    }); // للـ debugging
+        console.log('Updated Center Activities:', {
+            sports: center.sportsActivities,
+            social: center.socialActivities,
+            art: center.artActivities
+        });
 
-    res.status(200).json({
-        success: true,
-        message: "تم تحديث المركز بنجاح",
-        Centers: center
-    });
+        res.status(200).json({
+            success: true,
+            message: "تم تحديث المركز بنجاح",
+            data: center // غيّرت من Centers إلى data
+        });
+
+    } catch (error) {
+        console.error('Database update error:', error);
+        return res.status(400).json({
+            success: false,
+            message: 'حدث خطأ أثناء تحديث المركز في قاعدة البيانات',
+            error: error.message
+        });
+    }
 });
 
 // Helper function to validate activity array
