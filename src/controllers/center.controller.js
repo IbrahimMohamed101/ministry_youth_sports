@@ -292,16 +292,67 @@ const updateCenter = asyncHandler(async (req, res) => {
         }
     }
 
-    // Create update object
+    // Create update object (exclude activities from direct update)
     const updateData = { ...req.body };
-    
-    // If we have a new image, add it to the update data
-    if (req.body.image) {
-        updateData.image = {
-            public_id: req.body.image.public_id,
-            url: req.body.image.url
-        };
+    delete updateData.sportsActivities;
+    delete updateData.socialActivities;
+    delete updateData.artActivities;
+    delete updateData.activities;
+
+    // Handle activities update - REPLACE existing activities completely
+    if (req.body.activities) {
+        // Activities sent as object { sports: [...], social: [...], art: [...] }
+        const { sports = [], social = [], art = [] } = req.body.activities;
+
+        // Validate and process activities
+        const activitiesData = await validateAndProcessActivities({
+            sports,
+            social, 
+            art
+        });
+
+        if (!activitiesData.success) {
+            return res.status(activitiesData.statusCode).json({
+                success: false,
+                message: activitiesData.message,
+                ...(activitiesData.missing && { missing: activitiesData.missing }),
+                ...(activitiesData.invalidIds && { invalidIds: activitiesData.invalidIds })
+            });
+        }
+
+        // REPLACE activities completely
+        updateData.sportsActivities = sports;
+        updateData.socialActivities = social;
+        updateData.artActivities = art;
+        
+    } else {
+        // Handle individual activity arrays - REPLACE completely
+        if (req.body.sportsActivities !== undefined) {
+            const sportsResult = await validateActivityArray(req.body.sportsActivities, SportActivity, 'الأنشطة الرياضية');
+            if (!sportsResult.success) {
+                return res.status(sportsResult.statusCode).json(sportsResult.response);
+            }
+            updateData.sportsActivities = req.body.sportsActivities;
+        }
+
+        if (req.body.socialActivities !== undefined) {
+            const socialResult = await validateActivityArray(req.body.socialActivities, SocialActivity, 'الأنشطة الاجتماعية');
+            if (!socialResult.success) {
+                return res.status(socialResult.statusCode).json(socialResult.response);
+            }
+            updateData.socialActivities = req.body.socialActivities;
+        }
+
+        if (req.body.artActivities !== undefined) {
+            const artResult = await validateActivityArray(req.body.artActivities, ArtActivity, 'الأنشطة الفنية');
+            if (!artResult.success) {
+                return res.status(artResult.statusCode).json(artResult.response);
+            }
+            updateData.artActivities = req.body.artActivities;
+        }
     }
+
+    console.log('Update Data:', updateData); // للـ debugging
 
     // Update center with new data
     center = await Center.findByIdAndUpdate(
@@ -311,10 +362,19 @@ const updateCenter = asyncHandler(async (req, res) => {
             new: true,
             runValidators: true
         }
-    )
-    .populate('sportsActivities', 'name')
-    .populate('socialActivities', 'name')
-    .populate('artActivities', 'name');
+    );
+
+    // Populate the updated center's activities
+    center = await Center.findById(center._id)
+        .populate('sportsActivities', 'name')
+        .populate('socialActivities', 'name')
+        .populate('artActivities', 'name');
+
+    console.log('Updated Center Activities:', {
+        sports: center.sportsActivities,
+        social: center.socialActivities,
+        art: center.artActivities
+    }); // للـ debugging
 
     res.status(200).json({
         success: true,
@@ -322,6 +382,103 @@ const updateCenter = asyncHandler(async (req, res) => {
         Centers: center
     });
 });
+
+// Helper function to validate activity array
+async function validateActivityArray(activities, ActivityModel, activityTypeName) {
+    if (!Array.isArray(activities)) {
+        return {
+            success: false,
+            statusCode: 400,
+            response: {
+                success: false,
+                message: `${activityTypeName} يجب أن تكون مصفوفة`
+            }
+        };
+    }
+
+    // Allow empty arrays (this will clear all activities of this type)
+    if (activities.length === 0) {
+        return { success: true };
+    }
+
+    // Validate ObjectIds
+    const invalidIds = activities.filter(id => !mongoose.Types.ObjectId.isValid(id));
+    if (invalidIds.length > 0) {
+        return {
+            success: false,
+            statusCode: 400,
+            response: {
+                success: false,
+                message: `بعض معرفات ${activityTypeName} غير صالحة`,
+                invalidIds: invalidIds
+            }
+        };
+    }
+
+    // Check if activities exist in database
+    const existingActivities = await ActivityModel.find({ _id: { $in: activities } });
+    if (existingActivities.length !== activities.length) {
+        const foundIds = existingActivities.map(a => a._id.toString());
+        const missingIds = activities.filter(id => !foundIds.includes(id));
+        
+        return {
+            success: false,
+            statusCode: 404,
+            response: {
+                success: false,
+                message: `بعض ${activityTypeName} غير موجودة`,
+                missingIds: missingIds
+            }
+        };
+    }
+
+    return { success: true };
+}
+
+// Helper function to validate activities object
+async function validateAndProcessActivities({ sports, social, art }) {
+    // Validate ObjectIds for non-empty arrays
+    const allIds = [...sports, ...social, ...art];
+    const invalidIds = allIds.filter(id => id && !mongoose.Types.ObjectId.isValid(id));
+    
+    if (invalidIds.length > 0) {
+        return {
+            success: false,
+            statusCode: 400,
+            message: 'بعض معرفات الأنشطة غير صالحة',
+            invalidIds
+        };
+    }
+
+    // Verify activities exist (only for non-empty arrays)
+    const verificationPromises = [
+        sports.length > 0 ? SportActivity.find({ _id: { $in: sports } }) : Promise.resolve([]),
+        social.length > 0 ? SocialActivity.find({ _id: { $in: social } }) : Promise.resolve([]),
+        art.length > 0 ? ArtActivity.find({ _id: { $in: art } }) : Promise.resolve([])
+    ];
+
+    const [existingSports, existingSocial, existingArt] = await Promise.all(verificationPromises);
+
+    // Check if all specified activities exist
+    const missingSports = sports.length > 0 ? sports.filter(id => !existingSports.find(a => a._id.toString() === id)) : [];
+    const missingSocial = social.length > 0 ? social.filter(id => !existingSocial.find(a => a._id.toString() === id)) : [];
+    const missingArt = art.length > 0 ? art.filter(id => !existingArt.find(a => a._id.toString() === id)) : [];
+
+    if (missingSports.length > 0 || missingSocial.length > 0 || missingArt.length > 0) {
+        return {
+            success: false,
+            statusCode: 404,
+            message: 'بعض الأنشطة غير موجودة',
+            missing: {
+                sports: missingSports,
+                social: missingSocial,
+                art: missingArt
+            }
+        };
+    }
+
+    return { success: true };
+}
 
 // @desc    Delete center
 // @route   DELETE /api/centers/:id

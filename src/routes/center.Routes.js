@@ -51,7 +51,7 @@ router.post('/',
 router.put('/:id', 
     uploadSingleImage('image'), // Handle single file upload for 'image' field
     cleanupUploads, // Clean up uploaded files after response
-    updateCenter
+    updateCenter 
 );
 router.delete('/:id', deleteCenter);
 
