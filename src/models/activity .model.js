@@ -20,7 +20,6 @@ const activitySchema = new mongoose.Schema(
       trim: true,
       validate: {
         validator: function (v) {
-          // تصحيح الـ Regex (من غير الفاصلة)
           const phoneRegex = /^(\+2)?01[0-25][0-9]{8}$/;
           return phoneRegex.test(v);
         },
@@ -38,7 +37,6 @@ const activitySchema = new mongoose.Schema(
       required: [true, "التاريخ مطلوب"],
       validate: {
         validator: function (v) {
-          // التأكد من أن التاريخ ليس في الماضي
           return v >= new Date(new Date().setHours(0, 0, 0, 0));
         },
         message: "التاريخ يجب أن يكون في المستقبل أو اليوم",
@@ -131,19 +129,47 @@ activitySchema.pre("validate", function (next) {
   next();
 });
 
-// Slug Generator
-activitySchema.pre("save", function (next) {
-  if (this.isModified("projectName")) {
-    let slug = this.projectName
+// Improved Slug Generator - يضمن عدم التكرار
+activitySchema.pre("save", async function (next) {
+  if (this.isModified("projectName") || this.isNew) {
+    let baseSlug = this.projectName
       .trim()
       .replace(/\s+/g, "-")
       .replace(/[^\u0600-\u06FF\u0750-\u077F\w\s-]/g, "")
       .toLowerCase();
 
-    if (!slug || slug === "-" || slug.replace(/-/g, "") === "") {
+    // لو الـ slug فاضي أو مش صالح
+    if (!baseSlug || baseSlug === "-" || baseSlug.replace(/-/g, "") === "") {
       const timestamp = Date.now();
       const random = Math.floor(Math.random() * 1000);
-      slug = `activity-${timestamp}-${random}`;
+      baseSlug = `activity-${timestamp}-${random}`;
+    }
+
+    let slug = baseSlug;
+    let counter = 1;
+
+    // تحقق من وجود الـ slug وأضف رقم لو موجود
+    while (true) {
+      const existingActivity = await mongoose.models.Activity.findOne({ 
+        slug: slug,
+        _id: { $ne: this._id } // استثناء الـ document الحالي في حالة الـ update
+      });
+
+      if (!existingActivity) {
+        break; // الـ slug مش موجود، يمكن استخدامه
+      }
+
+      // الـ slug موجود، أضف رقم
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+
+      // حماية من الـ infinite loop
+      if (counter > 1000) {
+        const timestamp = Date.now();
+        const random = Math.floor(Math.random() * 10000);
+        slug = `activity-${timestamp}-${random}`;
+        break;
+      }
     }
 
     this.slug = slug;
